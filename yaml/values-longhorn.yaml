@@ -1,0 +1,40 @@
+# values-longhorn.yaml
+# Good defaults for a small, 3-node cluster
+
+defaultSettings:
+  # Longhorn default number of replicas when new volumes are created
+  defaultReplicaCount: 3
+  # Where Longhorn stores data on each node (make sure there's space here)
+  defaultDataPath: /var/lib/longhorn
+  # Optional but handy: auto salvage if a replica fails
+  autoSalvage: true
+  # Allow RWX via NFS share manager if you need shared volumes later
+  defaultShareManagerImage: longhornio/longhorn-share-manager:v1_20240730
+
+# Tolerations so Longhorn can run even if control-plane nodes are tainted
+longhornManager:
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    - key: "node-role.kubernetes.io/master"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+longhornDriver:
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    - key: "node-role.kubernetes.io/master"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+longhornUI:
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    - key: "node-role.kubernetes.io/master"
+      operator: "Exists"
+      effect: "NoSchedule"
