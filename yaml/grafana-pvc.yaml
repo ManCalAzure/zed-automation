@@ -1,0 +1,11 @@
+# pvc-grafana.yaml  (reconciled independently from the app)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-pvc
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: longhorn-retain   # see StorageClass below
+  resources:
+    requests:
+      storage: 10Gi
