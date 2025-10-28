@@ -14,11 +14,12 @@ parameters:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: app-data-pvc
+  name: grafana-pvc
+  namespace: default
 spec:
-  accessModes: ["ReadWriteOnce"]      # typical for single-writer volumes
+  accessModes: ["ReadWriteOnce"]
   resources:
     requests:
-      storage: 10Gi                   # size of the volume
-  storageClassName: longhorn-retain
+      storage: 10Gi
+  storageClassName: longhorn-retain   # or your actual Longhorn SC
   volumeMode: Filesystem
