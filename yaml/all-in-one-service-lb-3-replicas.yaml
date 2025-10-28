@@ -1,0 +1,84 @@
+# --- 1. DEPLOYMENT (UNCHANGED) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zed-lab-web
+  labels:
+    app: zed-lab-web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: zed-lab-web
+  template:
+    metadata:
+      labels:
+        app: zed-lab-web
+    spec:
+      containers:
+        - name: zed-lab-web
+          image: zedmanny/zededa-simple-web:latest
+          ports:
+            - name: http
+              containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+---
+# --- 2. SERVICE (ClusterIP for internal access) ---
+# This Service is the target for the HTTPRoute.
+apiVersion: v1
+kind: Service
+metadata:
+  name: zed-lab-web-service
+  labels:
+    app: zed-lab-web
+spec:
+  selector:
+    app: zed-lab-web
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+  type: ClusterIP
+---
+# --- 3. GATEWAY (The external entry point) ---
+# This Gateway resource requests the specific IP 192.168.0.222.
+# The Gateway Controller must be configured to honor this address request.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: zed-lab-external-gateway
+spec:
+  # NOTE: Replace 'my-gateway-class' with the actual GatewayClass installed in your cluster (e.g., 'contour', 'istio', etc.)
+  gatewayClassName: my-gateway-class 
+  addresses:
+  - type: IPAddress
+    value: 192.168.0.222
+  listeners:
+    - protocol: HTTP
+      port: 80
+      name: web-listener
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+# --- 4. HTTPROUTE (Routes traffic to the Service) ---
+# This links the Gateway's listener to the zed-lab-web-service.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: zed-lab-web-route
+  labels:
+    app: zed-lab-web
+spec:
+  parentRefs:
+    - name: zed-lab-external-gateway
+      sectionName: web-listener
+  rules:
+    - backendRefs:
+        - name: zed-lab-web-service
+          port: 80
