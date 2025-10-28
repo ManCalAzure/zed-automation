@@ -4,7 +4,7 @@ metadata:
   name: nginx-gateway
   namespace: nginx-gateway
   annotations:
-    kube-vip.io/loadbalancerIPs: "192.168.2.210"   # the LAN VIP you want
+    kube-vip.io/loadbalancerIPs: "192.168.0.210"   # the LAN VIP you want
 spec:
   type: LoadBalancer
   ports:
