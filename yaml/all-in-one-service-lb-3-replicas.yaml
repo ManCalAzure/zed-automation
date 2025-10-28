@@ -1,33 +1,9 @@
 # ====================================================================
-# MetalLB INFRASTRUCTURE CONFIGURATION (Namespace: metallb-system)
-# This MUST be applied *before* the Gateway to ensure the IP pool is ready.
+# APPLICATION & GATEWAY API CONFIGURATION
+# This file is independent of the MetalLB configuration.
 # ====================================================================
 
-apiVersion: metallb.io/v1beta1
-kind: IPAddressPool
-metadata:
-  name: zed-lab-pool
-  namespace: metallb-system # MetalLB CRDs must be in their installation namespace
-spec:
-  # This pool makes 192.168.0.222 available for assignment.
-  addresses:
-  - 192.168.0.220-192.168.0.230
----
-apiVersion: metallb.io/v1beta1
-kind: L2Advertisement
-metadata:
-  name: zed-lab-l2-advertisement
-  namespace: metallb-system
-spec:
-  # Advertises the IPs from the pool defined above via Layer 2 (ARP).
-  ipAddressPools:
-  - zed-lab-pool
-
-# ====================================================================
-# APPLICATION & GATEWAY API CONFIGURATION (Target Namespace: default or app namespace)
-# ====================================================================
-
-# --- 1. DEPLOYMENT (Application Pods) ---
+# --- 1. DEPLOYMENT (Application Pods on containerPort: 80) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -58,6 +34,7 @@ spec:
             periodSeconds: 5
 ---
 # --- 2. SERVICE (Internal Load Balancer) ---
+# Routes internal traffic from the Gateway to the Pods.
 apiVersion: v1
 kind: Service
 metadata:
