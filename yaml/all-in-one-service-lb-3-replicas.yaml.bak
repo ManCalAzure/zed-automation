@@ -1,4 +1,33 @@
-# --- 1. DEPLOYMENT (Pods on containerPort: 80) ---
+# ====================================================================
+# MetalLB INFRASTRUCTURE CONFIGURATION (Namespace: metallb-system)
+# This MUST be applied *before* the Gateway to ensure the IP pool is ready.
+# ====================================================================
+
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: zed-lab-pool
+  namespace: metallb-system # MetalLB CRDs must be in their installation namespace
+spec:
+  # This pool makes 192.168.0.222 available for assignment.
+  addresses:
+  - 192.168.0.220-192.168.0.230
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: zed-lab-l2-advertisement
+  namespace: metallb-system
+spec:
+  # Advertises the IPs from the pool defined above via Layer 2 (ARP).
+  ipAddressPools:
+  - zed-lab-pool
+
+# ====================================================================
+# APPLICATION & GATEWAY API CONFIGURATION (Target Namespace: default or app namespace)
+# ====================================================================
+
+# --- 1. DEPLOYMENT (Application Pods) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,7 +49,7 @@ spec:
           image: zedmanny/zededa-simple-web:latest
           ports:
             - name: http
-              containerPort: 80 # <-- PODS ARE LISTENING HERE (80)
+              containerPort: 80 # Pods listen on 80
           readinessProbe:
             httpGet:
               path: /
@@ -29,7 +58,6 @@ spec:
             periodSeconds: 5
 ---
 # --- 2. SERVICE (Internal Load Balancer) ---
-# This routes internal traffic from the Gateway to the Pods.
 apiVersion: v1
 kind: Service
 metadata:
@@ -41,30 +69,30 @@ spec:
     app: zed-lab-web
   ports:
     - name: http
-      port: 80 # <-- Service port that the HTTPRoute references
-      targetPort: http # <-- Target port name (maps to containerPort: 80)
+      port: 80
+      targetPort: http # Targets containerPort 80
   type: ClusterIP
 ---
-# --- 3. GATEWAY (External Entry Point) ---
+# --- 3. GATEWAY (External Entry Point on 192.168.0.222:8080) ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: zed-lab-external-gateway
 spec:
-  # NOTE: Replace 'my-gateway-class' with the actual GatewayClass installed in your cluster
+  # IMPORTANT: Replace 'my-gateway-class' with your actual controller class (e.g., 'istio', 'contour').
   gatewayClassName: my-gateway-class 
   addresses:
   - type: IPAddress
     value: 192.168.0.222
   listeners:
     - protocol: HTTP
-      port: 8080 # <-- EXTERNAL TRAFFIC LISTENS HERE (8080)
+      port: 8080 # External listeners on port 8080
       name: web-listener
       allowedRoutes:
         namespaces:
           from: Same
 ---
-# --- 4. HTTPROUTE (Routes traffic to the Service) ---
+# --- 4. HTTPROUTE (Routes traffic from Gateway 8080 to Service 80) ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -78,4 +106,4 @@ spec:
   rules:
     - backendRefs:
         - name: zed-lab-web-service
-          port: 80 # <-- Traffic routed to the Service's internal port (80)
+          port: 80
