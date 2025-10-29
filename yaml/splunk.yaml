@@ -25,11 +25,27 @@ spec:
           env:
             - name: SPLUNK_START_ARGS
               value: "--accept-license"
+            - name: SPLUNK_GENERAL_TERMS
+              value: "--accept-sgt-current-at-splunk-com"
             - name: SPLUNK_PASSWORD
               value: "Splunk123!"
           ports:
-            - containerPort: 8000   # Web UI
+            - containerPort: 8000   # web UI
             - containerPort: 8088   # HEC
+            - containerPort: 9997   # forwarder
+          resources:
+            requests:
+              cpu: "1"
+              memory: "4Gi"
+            limits:
+              cpu: "2"
+              memory: "6Gi"
+          volumeMounts:
+            - name: splunk-var
+              mountPath: /opt/splunk/var
+      volumes:
+        - name: splunk-var
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -38,14 +54,14 @@ metadata:
   namespace: splunk
 spec:
   type: NodePort
-  ports:
-    - port: 8000
-      targetPort: 8000
-      nodePort: 30080
-      name: web
-    - port: 8088
-      targetPort: 8088
-      nodePort: 30088
-      name: hec
   selector:
     app: splunk
+  ports:
+    - name: web
+      port: 8000
+      targetPort: 8000
+      nodePort: 30080
+    - name: hec
+      port: 8088
+      targetPort: 8088
+      nodePort: 30088
