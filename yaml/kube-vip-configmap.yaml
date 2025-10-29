@@ -8,4 +8,4 @@ data:
   lbEnable: "true"
   vip_leaderelection: "true"
   provider: "kube-vip"
-  range-global: "192.168.0.240-192.168.2.245"
+  range-global: "192.168.0.240-192.168.0.245"
