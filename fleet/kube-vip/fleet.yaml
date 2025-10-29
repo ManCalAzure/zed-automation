@@ -1,0 +1,8 @@
+defaultNamespace: kube-system    # <---- installs kube-vip here
+
+helm:
+  releaseName: kube-vip
+  chart: ./kube-vip-0.9.1.tgz
+  valuesFiles:
+    - values.yaml
+  takeOwnership: true
