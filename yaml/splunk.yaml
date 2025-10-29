@@ -1,0 +1,51 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: splunk
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: splunk
+  namespace: splunk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: splunk
+  template:
+    metadata:
+      labels:
+        app: splunk
+    spec:
+      containers:
+        - name: splunk
+          image: splunk/splunk:9.1.0
+          env:
+            - name: SPLUNK_START_ARGS
+              value: "--accept-license"
+            - name: SPLUNK_PASSWORD
+              value: "Splunk123!"
+          ports:
+            - containerPort: 8000   # Web UI
+            - containerPort: 8088   # HEC
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: splunk
+  namespace: splunk
+spec:
+  type: NodePort
+  ports:
+    - port: 8000
+      targetPort: 8000
+      nodePort: 30080
+      name: web
+    - port: 8088
+      targetPort: 8088
+      nodePort: 30088
+      name: hec
+  selector:
+    app: splunk
