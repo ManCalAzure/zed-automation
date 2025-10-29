@@ -1,0 +1,7 @@
+defaultNamespace: ingress-nginx
+helm:
+  releaseName: ingress-nginx
+  chart: ./charts/ingress-nginx-4.13.3.tgz
+  valuesFiles:
+    - values.yaml
+  takeOwnership: true
