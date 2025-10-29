@@ -32,6 +32,7 @@ metadata:
   #   kube-vip.io/loadbalancerIPs: "192.168.0.241"
 spec:
   type: LoadBalancer
+  loadBalancerClass: kube-vip.io/kube-vip-class
   selector:
     app: my-app-vip-test
   ports:
