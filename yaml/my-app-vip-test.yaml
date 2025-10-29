@@ -42,17 +42,16 @@ kind: Ingress
 metadata:
   name: my-app
   namespace: default
-  annotations:
-    kubernetes.io/ingress.class: traefik   # if needed
 spec:
+  ingressClassName: traefik
   rules:
-    - host: myapp.local         # set DNS to a node IP or Traefik LB address
+    - host: myapp.local
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: my-app
+                name: my-app-vip-test
                 port:
                   number: 80
