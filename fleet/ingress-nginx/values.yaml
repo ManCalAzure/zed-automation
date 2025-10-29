@@ -1,0 +1,13 @@
+controller:
+  replicaCount: 2
+  publishService:
+    enabled: true
+  service:
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+    loadBalancerIP: 192.168.0.200   # pick one in your 192.168.0.200-220 range
+  ingressClassResource:
+    enabled: true
+    name: nginx
+    controllerValue: k8s.io/ingress-nginx
+    default: true
