@@ -89,6 +89,7 @@ spec:
           args:
             - --leader-elect-resource-name=kube-vip-cloud-provider
             - --leader-elect-resource-namespace=kube-system
+            - --enableLoadBalancerClass=true
           env:
             - name: KUBEVIP_NAMESPACE
               value: kube-system
