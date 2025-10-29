@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-vip-test
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app-vip-test
+  template:
+    metadata:
+      labels:
+        app: my-app-vip-test
+    spec:
+      containers:
+        - name: web
+          image: docker.io/nginxdemos/hello:latest   # lightweight demo web server
+          ports:
+            - containerPort: 8080
+          env:
+            - name: NGINX_PORT
+              value: "8080"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-vip-test
+  namespace: default
+  # Optionally pin a specific VIP from your pool:
+  # annotations:
+  #   kube-vip.io/loadbalancerIPs: "192.168.0.241"
+spec:
+  type: LoadBalancer
+  selector:
+    app: my-app-vip-test
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
