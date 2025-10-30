@@ -46,7 +46,7 @@ spec:
             - name: vip_interface
               value: "eth1"                 # already set for your LAN
             - name: KUBERNETES_SERVICE_HOST
-              value: "192.168.0.10"         # ⬅️ a control-plane node IP
+              value: "10.245.0.1"         # ⬅️ a control-plane node IP
             - name: KUBERNETES_SERVICE_PORT
               value: "6443"
           securityContext:
