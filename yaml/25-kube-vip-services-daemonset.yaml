@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kube-vip
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kube-vip-role
+rules:
+  - apiGroups: [""]
+    resources: ["services","endpoints","nodes","pods","configmaps"]
+    verbs: ["get","list","watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create","patch","update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kube-vip-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kube-vip-role
+subjects:
+  - kind: ServiceAccount
+    name: kube-vip
+    namespace: kube-system
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-vip
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: kube-vip
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kube-vip
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kube-vip
+    spec:
+      serviceAccountName: kube-vip
+      hostNetwork: true
+      tolerations:
+        - { key: node-role.kubernetes.io/control-plane, effect: NoSchedule }
+        - { key: node-role.kubernetes.io/master, effect: NoSchedule }
+      containers:
+        - name: kube-vip
+          image: docker.io/kubevip/kube-vip:latest
+          imagePullPolicy: IfNotPresent
+          args: ["manager","--services","--arp","--leaderElection"]
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN","NET_RAW"]
+          # If nodes have multiple uplinks, pin the interface:
+          env:
+          - name: vip_interface
+            value: "eth1"
