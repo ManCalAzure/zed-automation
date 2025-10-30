@@ -29,13 +29,12 @@ subjects:
     name: kube-vip
     namespace: kube-system
 ---
+# 25-kube-vip-services-daemonset.yaml  (update)
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: kube-vip
   namespace: kube-system
-  labels:
-    app.kubernetes.io/name: kube-vip
 spec:
   selector:
     matchLabels:
@@ -52,13 +51,8 @@ spec:
         - { key: node-role.kubernetes.io/master, effect: NoSchedule }
       containers:
         - name: kube-vip
-          image: docker.io/kubevip/kube-vip:latest
+          image: ghcr.io/kube-vip/kube-vip:v0.7.2   # ← pinned & from GHCR
           imagePullPolicy: IfNotPresent
           args: ["manager","--services","--arp","--leaderElection"]
           securityContext:
-            capabilities:
-              add: ["NET_ADMIN","NET_RAW"]
-          # If nodes have multiple uplinks, pin the interface:
-          env:
-          - name: vip_interface
-            value: "eth1"
+            capabilities: { add: ["NET_ADMIN","NET_RAW"] }
