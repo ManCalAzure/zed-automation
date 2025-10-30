@@ -29,7 +29,6 @@ subjects:
     name: kube-vip
     namespace: kube-system
 ---
-# 25-kube-vip-services-daemonset.yaml  (update)
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -47,12 +46,30 @@ spec:
       serviceAccountName: kube-vip
       hostNetwork: true
       tolerations:
-        - { key: node-role.kubernetes.io/control-plane, effect: NoSchedule }
-        - { key: node-role.kubernetes.io/master, effect: NoSchedule }
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/control-plane
+          effect: NoSchedule
       containers:
         - name: kube-vip
-          image: ghcr.io/kube-vip/kube-vip:v0.7.2   # ← pinned & from GHCR
+          image: ghcr.io/kube-vip/kube-vip:v0.7.2
           imagePullPolicy: IfNotPresent
-          args: ["manager","--services","--arp","--leaderElection"]
+          args:
+            - manager
+            - --services
+            - --arp
+            - --leaderElection
+          env:
+            - name: vip_interface           # 👈 pin the network interface
+              value: "eth1"
+            - name: svc_enable
+              value: "true"
+            - name: vip_arp
+              value: "true"
+            - name: vip_leaderelection
+              value: "true"
           securityContext:
-            capabilities: { add: ["NET_ADMIN","NET_RAW"] }
+            capabilities:
+              add:
+                - NET_ADMIN
+                - NET_RAW
