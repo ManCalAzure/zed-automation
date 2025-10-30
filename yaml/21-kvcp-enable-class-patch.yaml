@@ -1,4 +1,4 @@
-# 21-kvcp-enable-class-patch.yaml
+# 21-kvcp-deploy.yaml  (ensure args DO NOT include enableLoadBalancerClass)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -9,7 +9,15 @@ spec:
     spec:
       containers:
         - name: kube-vip-cloud-provider
+          image: docker.io/kubevip/kube-vip-cloud-provider:v0.0.12
+          command: ["/kube-vip-cloud-provider"]
           args:
             - --leader-elect-resource-name=kube-vip-cloud-provider
             - --leader-elect-resource-namespace=kube-system
-            - --enableLoadBalancerClass=true     # <- let Services opt into kube-vip
+          env:
+            - name: KUBEVIP_NAMESPACE
+              value: kube-system
+            - name: KUBEVIP_CONFIGMAP
+              value: kube-vip
+            - name: KUBEVIP_SVC_LB_POLL
+              value: "true"
