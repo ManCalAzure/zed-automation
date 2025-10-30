@@ -1,0 +1,15 @@
+# 21-kvcp-enable-class-patch.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-vip-cloud-provider
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      containers:
+        - name: kube-vip-cloud-provider
+          args:
+            - --leader-elect-resource-name=kube-vip-cloud-provider
+            - --leader-elect-resource-namespace=kube-system
+            - --enableLoadBalancerClass=true     # <- let Services opt into kube-vip
